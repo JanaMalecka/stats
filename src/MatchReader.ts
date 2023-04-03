@@ -1,10 +1,27 @@
-import { CsvFileReader } from "./CsvFileReader";
-import  {dateStringToDate} from './utils';
-import { MatchResult } from "./MatchResult";
+import { dateStringToDate} from './utils';
+import { MatchResult } from './MatchResult';
+import { MatchData } from './MatchData';
+import { CsvFileReader } from './CsvFileReader';
 
-export class MatchReader extends CsvFileReader {
-  mapRow(row: string[]): MatchData {
-    return [
+interface DataReader {
+  read(): void;
+  data: string[][];
+}
+
+export class MatchReader {
+  static fromCsv(filename: string): MatchReader {
+    return new MatchReader(new CsvFileReader(filename))
+  }
+  matches: MatchData[] = [];
+
+  constructor(public reader: DataReader) {}
+
+  load(): void {
+    this.reader.read();
+    this.matches = this.reader.data
+    .map(
+      (row: string[]): MatchData => {
+       return [
       dateStringToDate(row[0]),
       row[1],
       row[2],
@@ -13,5 +30,6 @@ export class MatchReader extends CsvFileReader {
       row[5] as MatchResult, //type assertion - it is not only string, it is one of the possible value of that enum H, A, D, 
       row[6]
     ]
+    })
   }
 }
